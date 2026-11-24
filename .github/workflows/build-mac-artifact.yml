@@ -1,0 +1,22 @@
+name: build-mac-artifact
+on: workflow_dispatch
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: >
+          cmake -S . -B build-metal -DCMAKE_BUILD_TYPE=Release
+          -DBUILD_SHARED_LIBS=OFF -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_TOOLS=ON
+          -DLLAMA_BUILD_EXAMPLES=OFF -DLLAMA_BUILD_SERVER=ON -DLLAMA_BUILD_APP=OFF
+          -DLLAMA_BUILD_UI=OFF -DLLAMA_OPENSSL=OFF -DGGML_METAL=ON
+          -DGGML_METAL_EMBED_LIBRARY=ON -DGGML_BLAS=OFF -DGGML_CCACHE=OFF
+      - name: Build
+        run: cmake --build build-metal --target llama-server -j 4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: llama-server-macos-arm64
+          path: build-metal/bin/llama-server
+          retention-days: 3
